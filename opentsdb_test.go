@@ -16,12 +16,12 @@ var testClient, _ = opentsdb.NewClient(testOptions)
 
 func TestPut(t *testing.T) {
 	tim := time.Now().Unix()
-	p, _ := opentsdb.NewPoint("app-rankings.rank",
+	p := opentsdb.NewPoint("app-rankings.rank",
 		tim,
 		tim%10,
 		map[string]string{"country": "pt", "id": "1"})
 
-	p2, _ := opentsdb.NewPoint("app-rankings.rank",
+	p2 := opentsdb.NewPoint("app-rankings.rank",
 		tim,
 		(tim%10)+10,
 		map[string]string{"country": "pt", "id": "9"})
@@ -30,12 +30,71 @@ func TestPut(t *testing.T) {
 	bp.AddPoint(p)
 	bp.AddPoint(p2)
 
-	_, err := testClient.Put(bp, "details")
+	code, _, err := testClient.Put(bp, "details")
 	if err != nil {
 		t.Error(
 			"Expected", nil,
 			"Got", err,
 		)
+	}
+	if code != 200 {
+		t.Error("Expected", 200, "Got", code)
+	}
+}
+
+func TestPutEmptyParams(t *testing.T) {
+	tim := time.Now().Unix()
+	p := opentsdb.NewPoint("app-rankings.rank",
+		tim,
+		tim%10,
+		map[string]string{"country": "pt", "id": "1"})
+
+	p2 := opentsdb.NewPoint("app-rankings.rank",
+		tim,
+		(tim%10)+10,
+		map[string]string{"country": "pt", "id": "9"})
+
+	bp := opentsdb.NewBatchPoints()
+	bp.AddPoint(p)
+	bp.AddPoint(p2)
+
+	code, _, err := testClient.Put(bp, "")
+	if err != nil {
+		t.Error(
+			"Expected", nil,
+			"Got", err,
+		)
+	}
+	if code != 204 {
+		t.Error("Expected", 204, "Got", code)
+	}
+}
+
+func TestPutBadPoint(t *testing.T) {
+	tim := time.Now().Unix()
+	p := opentsdb.NewPoint("app-rankings.rank",
+		tim,
+		"NaN",
+		map[string]string{"country": "pt", "id": "1"})
+
+	p2 := opentsdb.NewPoint("app-rankings.rank",
+		tim,
+		(tim%10)+10,
+		map[string]string{"country": "pt", "id": "9"})
+
+	bp := opentsdb.NewBatchPoints()
+	bp.AddPoint(p)
+	bp.AddPoint(p2)
+
+	code, _, err := testClient.Put(bp, "")
+	if err != nil {
+		t.Error(
+			"Expected", nil,
+			"Got", err,
+		)
+	}
+	if code != 400 {
+		t.Error("Expected", 400, "Got", code)
 	}
 }
 
@@ -44,11 +103,14 @@ func TestGet(t *testing.T) {
 	q.Start = "6h-ago"
 	q.Queries = append(q.Queries, opentsdb.Query{Aggregator: "sum", Metric: "app-rankings.rank"})
 
-	_, err := testClient.Query(q)
+	code, _, err := testClient.Query(q)
 	if err != nil {
 		t.Error(
 			"Expected", nil,
 			"Got", err,
 		)
+	}
+	if code != 200 {
+		t.Error("Expected", 200, "Got", code)
 	}
 }

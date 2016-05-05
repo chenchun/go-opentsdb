@@ -76,10 +76,10 @@ func (c *Client) Dropcaches() error {
 	return nil
 }
 
-func (c *Client) Put(bp *BatchPoints, params string) ([]byte, error) {
+func (c *Client) Put(bp *BatchPoints, params string) (int, []byte, error) {
 	data, err := bp.ToJson()
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
 	u := c.url
@@ -88,28 +88,23 @@ func (c *Client) Put(bp *BatchPoints, params string) ([]byte, error) {
 
 	req, err := http.NewRequest("POST", u.String(), bytes.NewReader(data))
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 	defer resp.Body.Close()
-
 	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return body, nil
+	return resp.StatusCode, body, err
 }
 
-func (c *Client) Query(q *QueryParams) ([]byte, error) {
+func (c *Client) Query(q *QueryParams) (int, []byte, error) {
 	data, err := json.Marshal(q)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
 	u := c.url
@@ -117,22 +112,22 @@ func (c *Client) Query(q *QueryParams) ([]byte, error) {
 
 	req, err := http.NewRequest("POST", u.String(), bytes.NewReader(data))
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
-	return body, nil
+	return resp.StatusCode, body, nil
 }
 
 func (c *Client) Search() error {

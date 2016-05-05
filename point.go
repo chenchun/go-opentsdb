@@ -2,8 +2,6 @@ package opentsdb
 
 import (
 	"encoding/json"
-	"errors"
-	"reflect"
 )
 
 type Point struct {
@@ -25,27 +23,13 @@ type Point struct {
 	Tags map[string]string `json:"tags"`
 }
 
-func NewPoint(metric string, timestamp int64, value interface{}, tags map[string]string) (*Point, error) {
-	if metric == "" {
-		return nil, errors.New("PointError: Metric can not be empty")
-	}
-
-	t := reflect.TypeOf(value)
-	if t == nil || (t.Kind() != reflect.Int &&
-		t.Kind() != reflect.Int8 &&
-		t.Kind() != reflect.Int16 &&
-		t.Kind() != reflect.Int32 &&
-		t.Kind() != reflect.Int64 &&
-		t.Kind() != reflect.Float32) {
-		return nil, errors.New("PointError: value must of type int, int8, int16, int32, int64 or float32")
-	}
-
+func NewPoint(metric string, timestamp int64, value interface{}, tags map[string]string) *Point {
 	return &Point{
 		Metric:    metric,
 		Timestamp: timestamp,
 		Value:     value,
 		Tags:      tags,
-	}, nil
+	}
 }
 
 type BatchPoints struct {
